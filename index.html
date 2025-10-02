@@ -14,10 +14,46 @@
     <div id="root"></div>
     <div id="status">Loading…</div>
     <script type="module">
-      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@latest/build/stlite.js";
-
       const rootEl = document.getElementById("root");
       const statusEl = document.getElementById("status");
+
+      async function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = src;
+          s.async = true;
+          s.crossOrigin = "anonymous";
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      async function getMount() {
+        try {
+          const mod = await import("https://unpkg.com/@stlite/browser@0.66.0/build/stlite.js");
+          return mod.mount;
+        } catch (_e1) {
+          try {
+            const mod2 = await import("https://cdn.jsdelivr.net/npm/@stlite/browser@0.66.0/build/stlite.js");
+            return mod2.mount;
+          } catch (_e2) {
+            try {
+              await loadScript("https://unpkg.com/@stlite/browser@0.66.0/dist/stlite.js");
+              if (window.stlite && typeof window.stlite.mount === "function") {
+                return window.stlite.mount;
+              }
+            } catch {}
+            try {
+              await loadScript("https://cdn.jsdelivr.net/npm/@stlite/browser@0.66.0/dist/stlite.js");
+              if (window.stlite && typeof window.stlite.mount === "function") {
+                return window.stlite.mount;
+              }
+            } catch {}
+            throw new Error("Failed to load stlite from CDNs");
+          }
+        }
+      }
 
       async function loadFileAsArrayBuffer(path) {
         const res = await fetch(path);
@@ -26,6 +62,7 @@
       }
 
       async function main() {
+        const mount = await getMount();
         statusEl.textContent = "Loading app.py…";
         const code = await fetch("app.py").then(r => r.text());
         const encoder = new TextEncoder();
