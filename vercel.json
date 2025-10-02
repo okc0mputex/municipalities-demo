@@ -6,6 +6,8 @@
     { "src": "app.py", "use": "@vercel/static" }
   ],
   "routes": [
+    { "src": "/clean_csv/(.*)", "dest": "/clean_csv/$1" },
+    { "src": "/app.py", "dest": "/app.py" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

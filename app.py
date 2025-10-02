@@ -8,10 +8,10 @@ import plotly.express as px
 import streamlit as st
 
 
-# Defaults for static hosting / stlite: use relative paths within the repo
-# In-browser (stlite) these are only used when files are preloaded via index.html or when running locally.
-DEFAULT_XLSX_PATH = str(Path("Στοιχεία Συμβάσεων_Demo Έκδοση.xlsx").resolve())
-DEFAULT_CSV_DIR = str(Path("clean_csv").resolve())
+# Defaults for static hosting / stlite: keep plain relative paths so they map to the in-browser FS
+# In-browser (stlite), files are mounted at "/"; avoid resolve() which would point to /home/pyodide/...
+DEFAULT_XLSX_PATH = "Στοιχεία Συμβάσεων_Demo Έκδοση.xlsx"
+DEFAULT_CSV_DIR = "clean_csv"
 
 
 def _normalize_column_name(column_name: str) -> str:

@@ -7,14 +7,17 @@
     
     <style>
       html, body, #root { height: 100%; margin: 0; }
+      #status { position: fixed; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 10px; border-radius: 6px; font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; z-index: 9999; }
     </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="status">Loading…</div>
     <script type="module">
-      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/mount@latest/+esm";
+      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@latest/build/stlite.js";
 
       const rootEl = document.getElementById("root");
+      const statusEl = document.getElementById("status");
 
       async function loadFileAsArrayBuffer(path) {
         const res = await fetch(path);
@@ -23,7 +26,10 @@
       }
 
       async function main() {
+        statusEl.textContent = "Loading app.py…";
         const code = await fetch("app.py").then(r => r.text());
+        const encoder = new TextEncoder();
+        statusEl.textContent = "Preloading CSV files…";
 
         // Preload cleaned CSVs into the in-browser filesystem for immediate use
         const csvFilenames = [
@@ -41,16 +47,24 @@
             files[`clean_csv/${name}`] = new Uint8Array(buf);
           }
         }
+        // Add entrypoint file
+        files["app.py"] = encoder.encode(code);
 
-        mount(
-          {
-            code,
-            // streamlit, pandas, numpy come via Pyodide; add extra pure-Python deps if needed
-            requirements: ["plotly", "openpyxl"],
-            files,
-          },
-          rootEl
-        );
+        statusEl.textContent = "Starting Python runtime…";
+        try {
+          await mount(
+            {
+              entrypoint: "app.py",
+              files,
+              requirements: ["plotly", "openpyxl"],
+            },
+            rootEl
+          );
+          statusEl.remove();
+        } catch (err) {
+          console.error(err);
+          statusEl.textContent = "Error: " + (err && err.message ? err.message : String(err));
+        }
       }
 
       main();
