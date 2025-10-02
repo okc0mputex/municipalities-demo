@@ -13,17 +13,45 @@
     <div id="root"></div>
     <script>
       const rootEl = document.getElementById("root");
-      fetch("app.py")
-        .then(r => r.text())
-        .then(code => {
-          stlite.mount(
-            {
-              code,
-              requirements: ["plotly"]
-            },
-            rootEl
-          );
-        });
+
+      async function loadFileAsArrayBuffer(path) {
+        const res = await fetch(path);
+        if (!res.ok) return null;
+        return await res.arrayBuffer();
+      }
+
+      async function main() {
+        const code = await fetch("app.py").then(r => r.text());
+
+        // Preload cleaned CSVs into the in-browser filesystem for immediate use
+        const csvFilenames = [
+          "Στοιχεία Συμβάσεων_Demo Έκδοση__Raw_Data.csv",
+          "Στοιχεία Συμβάσεων_Demo Έκδοση__Widget_Γενική_Επισκόπηση.csv",
+          "Στοιχεία Συμβάσεων_Demo Έκδοση__Widget_Συμβάσεις.csv",
+          "Στοιχεία Συμβάσεων_Demo Έκδοση__Λίστα.csv",
+        ];
+
+        const files = {};
+        for (const name of csvFilenames) {
+          const buf = await loadFileAsArrayBuffer(`clean_csv/${encodeURIComponent(name)}`);
+          if (buf) {
+            // Place under clean_csv/ so Path("clean_csv").glob("*.csv") works in app.py
+            files[`clean_csv/${name}`] = new Uint8Array(buf);
+          }
+        }
+
+        stlite.mount(
+          {
+            code,
+            // streamlit, pandas, numpy are bundled; add extra pure-Python deps if needed
+            requirements: ["plotly", "openpyxl"],
+            files,
+          },
+          rootEl
+        );
+      }
+
+      main();
     </script>
   </body>
   </html>

@@ -8,9 +8,10 @@ import plotly.express as px
 import streamlit as st
 
 
-# Absolute default path to the provided Excel file
-DEFAULT_XLSX_PATH = "/Users/vasilis/1/Στοιχεία Συμβάσεων_Demo Έκδοση.xlsx"
-DEFAULT_CSV_DIR = "/Users/vasilis/1/clean_csv"
+# Defaults for static hosting / stlite: use relative paths within the repo
+# In-browser (stlite) these are only used when files are preloaded via index.html or when running locally.
+DEFAULT_XLSX_PATH = str(Path("Στοιχεία Συμβάσεων_Demo Έκδοση.xlsx").resolve())
+DEFAULT_CSV_DIR = str(Path("clean_csv").resolve())
 
 
 def _normalize_column_name(column_name: str) -> str:
