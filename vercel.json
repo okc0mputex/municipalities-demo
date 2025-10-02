@@ -3,10 +3,12 @@
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
     { "src": "clean_csv/**", "use": "@vercel/static" },
-    { "src": "app.py", "use": "@vercel/static" }
+    { "src": "app.py", "use": "@vercel/static" },
+    { "src": "stlite/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/clean_csv/(.*)", "dest": "/clean_csv/$1" },
+    { "src": "/stlite/(.*)", "dest": "/stlite/$1" },
     { "src": "/app.py", "dest": "/app.py" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

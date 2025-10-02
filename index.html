@@ -30,29 +30,36 @@
       }
 
       async function getMount() {
+        // 1) Prefer local vendored ESM (same-origin, no CORS/MIME issues)
         try {
-          const mod = await import("https://unpkg.com/@stlite/browser@0.66.0/build/stlite.js");
-          return mod.mount;
-        } catch (_e1) {
+          const local = await import("/stlite/stlite.js");
+          return local.mount;
+        } catch (_localErr) {}
+
+        // 2) Fall back to CDN ESM, then global
+        const cdnCandidates = [
+          "https://unpkg.com/@stlite/browser@0.89.1/build/stlite.js",
+          "https://cdn.jsdelivr.net/npm/@stlite/browser@0.89.1/build/stlite.js",
+        ];
+        for (const url of cdnCandidates) {
           try {
-            const mod2 = await import("https://cdn.jsdelivr.net/npm/@stlite/browser@0.66.0/build/stlite.js");
-            return mod2.mount;
-          } catch (_e2) {
-            try {
-              await loadScript("https://unpkg.com/@stlite/browser@0.66.0/dist/stlite.js");
-              if (window.stlite && typeof window.stlite.mount === "function") {
-                return window.stlite.mount;
-              }
-            } catch {}
-            try {
-              await loadScript("https://cdn.jsdelivr.net/npm/@stlite/browser@0.66.0/dist/stlite.js");
-              if (window.stlite && typeof window.stlite.mount === "function") {
-                return window.stlite.mount;
-              }
-            } catch {}
-            throw new Error("Failed to load stlite from CDNs");
-          }
+            const mod = await import(url);
+            return mod.mount;
+          } catch {}
         }
+        const legacyCandidates = [
+          "https://unpkg.com/@stlite/browser@0.89.1/dist/stlite.js",
+          "https://cdn.jsdelivr.net/npm/@stlite/browser@0.89.1/dist/stlite.js",
+        ];
+        for (const url of legacyCandidates) {
+          try {
+            await loadScript(url);
+            if (window.stlite && typeof window.stlite.mount === "function") {
+              return window.stlite.mount;
+            }
+          } catch {}
+        }
+        throw new Error("Failed to load stlite (local and CDNs)");
       }
 
       async function loadFileAsArrayBuffer(path) {
