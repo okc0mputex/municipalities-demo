@@ -4,14 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>stlite + Streamlit</title>
-    <script src="https://cdn.jsdelivr.net/npm/stlite@latest/dist/stlite.js"></script>
+    
     <style>
       html, body, #root { height: 100%; margin: 0; }
     </style>
   </head>
   <body>
     <div id="root"></div>
-    <script>
+    <script type="module">
+      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/mount@latest/+esm";
+
       const rootEl = document.getElementById("root");
 
       async function loadFileAsArrayBuffer(path) {
@@ -40,10 +42,10 @@
           }
         }
 
-        stlite.mount(
+        mount(
           {
             code,
-            // streamlit, pandas, numpy are bundled; add extra pure-Python deps if needed
+            // streamlit, pandas, numpy come via Pyodide; add extra pure-Python deps if needed
             requirements: ["plotly", "openpyxl"],
             files,
           },
